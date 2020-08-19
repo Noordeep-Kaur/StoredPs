@@ -1,0 +1,226 @@
+use BusReservation
+
+--alter proc get_PickupLocations(@tid int,@toLocation varchar(50),@fromDate date)
+--as
+--begin
+--select FromLocation,FromDate,FromTime,FromDescription,ToDescription, Fare from JourneyRoutes where TripID=@tid and
+--																					  ToLocation=@toLocation and
+--																					  FromDate=@fromDate
+--end 
+
+--exec get_PickupLocations 12, 'Delhi', '2020-08-26'
+
+--create proc get_BusId(@fromloc varchar(50), @toloc varchar(50))
+--as 
+--begin
+--select Distinct t.BusID,d.NumberOfSeats from Trip t, JourneyRoutes d
+--where t.TID=(select TripID from JourneyRoutes where FromLocation='Dehradun PremNagar' and ToLocation='Delhi')
+--end
+
+--exec get_BusID 'Dehradun','Delhi'
+
+--select * from JourneyRoutes
+--select * from Trip
+----select * from UserDetails
+
+----alter proc proc_getWallet(@id int,@gender nvarchar(30))
+----as 
+----begin
+----select Wallet,City from UserDetails where UID=@id and Gender=@gender
+----end
+
+----alter proc get_Wallet(@id int,@gender nvarchar(30))
+----as
+----begin
+----select Wallet from UserDetails where UID=@id and Gender=@gender
+----end
+
+----exec get_WalletDetail 1001,'Male'
+
+----create proc get_WalletDetail(@id int)
+----as
+----begin
+----select Wallet from UserDetails where UID=@id
+----end
+
+--create proc get_BusIDValue(@fromloc varchar(30), @toloc varchar(30))
+--as
+--begin
+--select NumberOfSeats,CompanyName from JourneyRoutes where FromLocation=@fromloc
+--                                                      and ToLocation=@toloc
+--end 
+
+--exec get_BusIDValue 'Dehradun','Delhi'
+
+
+
+
+
+--Kunal
+
+create proc proc_getIdOfBus(@id int)
+as
+begin
+Select BusID,TID from Trip where TID=@id
+end
+
+exec proc_getIdOfBus 12
+create proc proc_Profile(@id int)
+as
+begin
+	SELECT G.FirstName FirstName,G.LastName LastName,U.Address,U.DOB,U.Gender,U.PhoneNumber,G.EmailId
+	FROM GuestUserDetails G JOIN  UserDetails U
+	ON (G.GID = U.GuestID) where U.UID=@id
+end
+
+drop proc proc_Wallet
+create proc proc_Wallet(@id int)
+as
+begin
+	select * from UserDetails where UID=@id
+end
+
+CREATE proc proc_Buses(@tripID int,@fromdate date)
+as 
+begin
+	select RouteID,TripID,FromDate,CompanyName,FromLocation,ToLocation,FromTime,ToTime,Fare,NumberOfSeats from 
+	JourneyRoutes where  TripID=@tripID and FromDate=@fromdate 
+end
+
+create proc proc_currentbooking(@id int)
+as 
+begin
+	select * from Ticket where FromDate > GETDATE() and BookingUserID=@id
+end
+
+create proc proc_cancel(@id int)
+as
+begin
+	select * from Ticket where BookingUserID=@id and TicketBookingStatus=0
+end
+
+create proc proc_previous(@id int)
+as
+begin
+	select * from Ticket where BookingUserID=@id and GETDATE()>FromDate
+end
+
+
+--Navneet
+
+create procedure proc_Register
+(@FirstName nvarchar(50),@LastName nvarchar(50),
+@EmailId nvarchar(50),@PhoneNumber varchar(15),@Password nvarchar(30),
+@Gender nvarchar(30), @DOB date,@Address nvarchar(100),
+@State nvarchar(50),@City nvarchar(50),@Pincode int,@SecurityQuestion varchar(30))
+as
+begin
+declare @GID int =@@identity
+declare @GuestID int =@@identity
+declare @Wallet int
+set @Wallet=500
+insert into GuestUserDetails(FirstName,Lastname,EmailId,PhoneNumber)
+	values (@FirstName,@Lastname,@EmailId,@PhoneNumber)
+	select @GID=SCOPE_IDENTITY()
+	--Select @GID=@GuestID
+    insert into UserDetails(Password,Gender,DOB,Address,State,City,Pincode,PhoneNumber,GuestID,Wallet,SecurityQuestion) 
+     values (@Password,@Gender,@DOB,@Address,@State,@City,@Pincode,@PhoneNumber,@GID,@Wallet,@SecurityQuestion)     
+end
+
+ALTER TABLE UserDetails
+add SecurityQuestion varchar(30)
+
+create procedure proc_UserRegistration2 as
+select u.UID, u.Password,u.Gender,u.DOB,u.Address,u.State,u.City,u.Pincode,u.PhoneNumber,u.GuestID,u.Wallet,g.FirstName,g.Lastname,g.EmailId,u.SecurityQuestion
+from UserDetails u 
+inner join GuestUserDetails g on g.GID=u.GuestID
+
+create procedure proc_UserLogin3
+as 
+select UID,Password from UserDetails
+exec proc_UserLogin3
+
+create procedure proc_ForgotPassword
+as 
+select UID,SecurityQuestion from UserDetails
+exec proc_ForgotPassword
+
+create procedure proc_GuestUserDetail as
+select * from GuestUserDetails
+exec proc_GuestUserDetail
+
+
+
+--Lipika
+
+create proc proc_TicketDetails(@BookingID int)
+as
+begin
+Select * from Ticket
+where BookingUserID = @BookingID AND FromDate >GETDATE() AND TicketBookingStatus = 1 
+end
+
+
+select * from GuestUserDetails
+
+create proc postGuestUserDetails(@fname nvarchar(50), @lname nvarchar(50),@email nvarchar(50),@pnumber varchar(15))
+as
+begin
+insert into GuestUserDetails values(@fname,@lname,@email,@pnumber)
+end
+
+exec postGuestUserDetails 'abcd','efgh','abcd@gmail.com','+91-2345789013'
+
+create proc proc_insertGuestUserID(@fname nvarchar(50),@lname nvarchar(50),@email nvarchar(50),@pnumber nvarchar(50))
+as 
+begin
+insert into GuestUserDetails values (@fname,@lname,@email,@pnumber)
+end
+
+create proc proc_GuestUserID(@fname nvarchar(50),@lname nvarchar(50),@email nvarchar(50),@pnumber nvarchar(50))
+as 
+begin
+insert into GuestUserDetails values (@fname,@lname,@email,@pnumber)
+end
+
+sp_helptext proc_GuestUserDetail
+
+create procedure proc_fetchUserId(@emailid nvarchar(50))
+as 
+begin 
+select * from GuestUserDetails where EmailId=@emailid
+end
+
+create procedure proc_dropColumn
+as
+begin
+ALTER TABLE Ticket
+DROP COLUMN BusID
+end
+
+exec proc_dropColumn
+
+select * from Ticket
+
+
+insert into Ticket(BusID,BookingUserID,FromLocation,ToLocation,FromDate,ToDate,FromTime,ToTime,
+TicketBookingStatus,NumberOfSeats,Fare,PaymentStatus) values(1,1001,'Dehradun','Delhi','6-2020','8-2020','66','55',
+1,2,1400,1)
+
+
+
+create proc proc_addTicketDetails(@bid int,@buid int,@fromloc varchar(50),@toloc varchar(50),
+@fromDate date, @todate date, @fromTime time(7), @toTime time(7) ,@seats int, @fare int)
+as
+begin
+insert into Ticket(BusID,BookingUserID,FromLocation,ToLocation,FromDate,ToDate,FromTime,ToTime,
+TicketBookingStatus,NumberOfSeats,Fare,PaymentStatus) values(@bid,@buid,@fromloc,@toloc,@fromDate,@todate,@fromTime,
+@toTime,1,@seats,@fare,1)
+end
+
+exec proc_addTicketDetails 1,1001,'Dehradun','Delhi','2020-08-24','2020-08-24','12:30:00.0000000','14:30:00.0000000',
+2,1400
+
+select * from Ticket
+
+select * from JourneyRoutes
